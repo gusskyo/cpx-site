@@ -47,7 +47,6 @@ input[type="number"] {
   outline: none;
 }
 
-/* PARCERIA */
 .parceria-box {
   display: flex;
   justify-content: space-between;
@@ -65,7 +64,6 @@ input[type="number"] {
   font-size: 0.8rem;
 }
 
-/* SWITCH */
 .switch {
   position: relative;
   width: 50px;
@@ -110,7 +108,6 @@ input[type="number"] {
   background: black;
 }
 
-/* BOTÃO */
 button {
   width: 100%;
   padding: 12px;
@@ -126,7 +123,6 @@ button:hover {
   color: black;
 }
 
-/* RESULTADO */
 .result {
   display: none;
   margin-top: 20px;
@@ -155,7 +151,6 @@ button:hover {
   margin-top: 4px;
 }
 
-/* MODAL ERRO */
 .modal {
   position: fixed;
   top:0;
@@ -191,7 +186,6 @@ button:hover {
   <div id="form">
     <input type="number" id="valor" placeholder="VALOR TOTAL A SER LAVADO">
 
-    <!-- AGORA CLICÁVEL COMPLETO -->
     <label class="parceria-box">
       <span>PARCERIA ATIVA</span>
       <div class="switch">
@@ -209,7 +203,6 @@ button:hover {
   </div>
 </div>
 
-<!-- MODAL ERRO -->
 <div class="modal" id="erroModal">
   <div class="modal-content">
     <p>Digite um valor válido</p>
@@ -240,10 +233,16 @@ function calcular() {
   }
 
   let limpo = valor * 0.9;
+
+  // RECIBOS
+  let blocos = Math.ceil(valor / 100000);
+  let recibos = blocos * 30;
+
   let html = '';
 
   html += `<div class="card"><span>VALOR TOTAL LAVADO</span><strong>${formatar(valor)}</strong></div>`;
   html += `<div class="card"><span>VALOR LIMPO RECEBIDO</span><strong>${formatar(limpo)}</strong></div>`;
+  html += `<div class="card"><span>RECIBOS NECESSÁRIOS</span><strong>${recibos}</strong></div>`;
 
   if (parceria) {
     let parceiros = limpo * 0.8;
