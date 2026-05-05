@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CPX Lavagem</title>
+<title>FOUR7 CALCULADORA</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
@@ -14,37 +14,45 @@ body {
   background: #000;
   color: #fff;
   display: flex;
-  align-items: center;
   justify-content: center;
-  height: 100vh;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#particles {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 .container {
+  position: relative;
+  z-index: 2;
   width: 90%;
   max-width: 450px;
   background: #050505;
-  border: 1px solid #ff0077;
+  border: 1px solid #ff003c;
   padding: 30px;
-  box-shadow: 0 0 25px #ff0077;
+  box-shadow: 0 0 25px #ff003c;
   text-align: center;
 }
 
 h1 {
-  color: #ff0077;
+  color: #ff003c;
   font-size: 3rem;
   letter-spacing: 4px;
-  text-shadow: 0 0 15px #ff0077;
+  text-shadow: 0 0 15px #ff003c;
   margin-bottom: 20px;
 }
 
-input[type="number"] {
+input {
   width: 100%;
   padding: 12px;
   background: #000;
-  border: 1px solid #ff0077;
+  border: 1px solid #ff003c;
   color: #fff;
   margin-bottom: 20px;
-  outline: none;
 }
 
 .parceria-box {
@@ -52,16 +60,9 @@ input[type="number"] {
   justify-content: space-between;
   align-items: center;
   background: #0a0a0a;
-  border: 1px solid #ff0077;
+  border: 1px solid #ff003c;
   padding: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 0 10px #ff0077;
-  cursor: pointer;
-}
-
-.parceria-box span {
-  color: #ff0077;
-  font-size: 0.8rem;
 }
 
 .switch {
@@ -74,18 +75,15 @@ input[type="number"] {
   position: absolute;
   width: 100%;
   height: 100%;
-  cursor: pointer;
   opacity: 0;
-  margin: 0;
+  cursor: pointer;
 }
 
 .slider {
   position: absolute;
-  background: #111;
   width: 100%;
   height: 100%;
-  border: 1px solid #ff0077;
-  transition: .3s;
+  border: 1px solid #ff003c;
 }
 
 .slider:before {
@@ -95,31 +93,26 @@ input[type="number"] {
   height: 18px;
   left: 3px;
   top: 3px;
-  background: #ff0077;
+  background: #ff003c;
   transition: .3s;
-}
-
-.switch input:checked + .slider {
-  background: #ff0077;
 }
 
 .switch input:checked + .slider:before {
   transform: translateX(24px);
-  background: black;
 }
 
 button {
   width: 100%;
   padding: 12px;
   background: #000;
-  border: 1px solid #ff0077;
-  color: #ff0077;
+  border: 1px solid #ff003c;
+  color: #ff003c;
   cursor: pointer;
-  box-shadow: 0 0 10px #ff0077;
+  box-shadow: 0 0 10px #ff003c;
 }
 
 button:hover {
-  background: #ff0077;
+  background: #ff003c;
   color: black;
 }
 
@@ -131,24 +124,32 @@ button:hover {
 
 .card {
   background: #0a0a0a;
-  border: 1px solid #ff0077;
+  border: 1px solid #ff003c;
   padding: 12px;
   margin-bottom: 10px;
-  box-shadow: 0 0 10px #ff0077;
+  box-shadow: 0 0 10px #ff003c;
 }
 
 .card span {
   font-size: 0.7rem;
   color: #999;
   display: block;
-  margin-bottom: 6px;
 }
 
 .card strong {
-  color: #ff0077;
-  font-size: 1.1rem;
-  display: block;
-  margin-top: 4px;
+  color: #ff003c;
+}
+
+.loading {
+  display: none;
+  margin-top: 20px;
+  color: #ff003c;
+  text-align: center;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.3; }
 }
 
 .modal {
@@ -165,23 +166,18 @@ button:hover {
 
 .modal-content {
   background: #050505;
-  border: 1px solid #ff0077;
+  border: 1px solid #ff003c;
   padding: 20px;
-  box-shadow: 0 0 20px #ff0077;
-  text-align: center;
-}
-
-.modal-content p {
-  color: #ff0077;
-  margin-bottom: 15px;
 }
 </style>
 </head>
 
 <body>
 
+<canvas id="particles"></canvas>
+
 <div class="container">
-  <h1>CPX</h1>
+  <h1>FOUR7</h1>
 
   <div id="form">
     <input type="number" id="valor" placeholder="VALOR TOTAL A SER LAVADO">
@@ -197,6 +193,8 @@ button:hover {
     <button onclick="calcular()">CALCULAR</button>
   </div>
 
+  <div class="loading" id="loading">PROCESSANDO SISTEMA...</div>
+
   <div class="result" id="resultado">
     <div id="cards"></div>
     <button onclick="resetar()">VOLTAR</button>
@@ -211,64 +209,116 @@ button:hover {
 </div>
 
 <script>
-function formatar(v) {
-  return `R$ ${v.toFixed(2)}`;
+const valorInput = document.getElementById('valor');
+const parceriaInput = document.getElementById('parceria');
+const form = document.getElementById('form');
+const resultado = document.getElementById('resultado');
+const cards = document.getElementById('cards');
+const loading = document.getElementById('loading');
+const erroModal = document.getElementById('erroModal');
+
+function formatar(v){
+  return "R$ " + v.toFixed(2);
 }
 
-function abrirErro() {
-  document.getElementById("erroModal").style.display = "flex";
-}
+function calcular(){
+  let valor = parseFloat(valorInput.value);
+  let parceria = parceriaInput.checked;
 
-function fecharErro() {
-  document.getElementById("erroModal").style.display = "none";
-}
-
-function calcular() {
-  let valor = parseFloat(document.getElementById('valor').value);
-  let parceria = document.getElementById('parceria').checked;
-
-  if (!valor || valor <= 0) {
-    abrirErro();
+  if(!valor || valor <= 0){
+    erroModal.style.display = "flex";
     return;
   }
 
-  let limpo = valor * 0.9;
+  form.style.display = "none";
+  loading.style.display = "block";
 
-  // RECIBOS
-  let blocos = Math.ceil(valor / 100000);
-  let recibos = blocos * 30;
+  setTimeout(() => {
 
-  let html = '';
+    let cliente = parceria ? valor * 0.7 : valor * 0.5;
+    let four7 = parceria ? valor * 0.2 : valor * 0.4;
 
-  html += `<div class="card"><span>VALOR TOTAL LAVADO</span><strong>${formatar(valor)}</strong></div>`;
-  html += `<div class="card"><span>VALOR LIMPO RECEBIDO</span><strong>${formatar(limpo)}</strong></div>`;
-  html += `<div class="card"><span>RECIBOS NECESSÁRIOS</span><strong>${recibos}</strong></div>`;
+    let blocos = Math.ceil(valor / 100000);
+    let recibos = blocos * 30;
 
-  if (parceria) {
-    let parceiros = limpo * 0.8;
-    let cpx = limpo * 0.2;
+    let html = `
+      <div class="card"><span>RECIBOS NECESSÁRIOS</span><strong>${recibos}</strong></div>
+      <div class="card"><span>VALOR TOTAL LAVADO</span><strong>${formatar(valor)}</strong></div>
+      <div class="card"><span>VALOR DEVOLVIDO PARA CLIENTE</span><strong>${formatar(cliente)}</strong></div>
+      <div class="card"><span>VALOR DA FOUR7</span><strong>${formatar(four7)}</strong></div>
+    `;
 
-    html += `<div class="card"><span>VALOR DEVOLVIDO PARA PARCEIROS</span><strong>${formatar(parceiros)}</strong></div>`;
-    html += `<div class="card"><span>VALOR LIMPO DA CPX</span><strong>${formatar(cpx)}</strong></div>`;
-  } else {
-    let pista = limpo * 0.65;
-    let cpx = limpo * 0.35;
+    cards.innerHTML = html;
+    loading.style.display = "none";
+    resultado.style.display = "block";
 
-    html += `<div class="card"><span>VALOR DEVOLVIDO PARA PISTA</span><strong>${formatar(pista)}</strong></div>`;
-    html += `<div class="card"><span>VALOR LIMPO DA CPX</span><strong>${formatar(cpx)}</strong></div>`;
-  }
-
-  document.getElementById('cards').innerHTML = html;
-  document.getElementById('form').style.display = 'none';
-  document.getElementById('resultado').style.display = 'block';
+  }, 600);
 }
 
-function resetar() {
-  document.getElementById('valor').value = '';
-  document.getElementById('parceria').checked = false;
-  document.getElementById('form').style.display = 'block';
-  document.getElementById('resultado').style.display = 'none';
+function resetar(){
+  valorInput.value = "";
+  parceriaInput.checked = false;
+  form.style.display = "block";
+  resultado.style.display = "none";
 }
+
+function fecharErro(){
+  erroModal.style.display = "none";
+}
+
+/* PARTICULAS COM LINHAS */
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let particles = [];
+
+for(let i=0;i<60;i++){
+  particles.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    vx:(Math.random()-0.5)*0.5,
+    vy:(Math.random()-0.5)*0.5
+  });
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2,0,Math.PI*2);
+    ctx.fillStyle="#ff003c";
+    ctx.fill();
+
+    for(let j=i+1;j<particles.length;j++){
+      let p2 = particles[j];
+      let dx = p.x - p2.x;
+      let dy = p.y - p2.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+
+      if(dist < 120){
+        ctx.strokeStyle = "rgba(255,0,60,"+(1-dist/120)+")";
+        ctx.beginPath();
+        ctx.moveTo(p.x,p.y);
+        ctx.lineTo(p2.x,p2.y);
+        ctx.stroke();
+      }
+    }
+
+    p.x+=p.vx;
+    p.y+=p.vy;
+
+    if(p.x<0||p.x>canvas.width)p.vx*=-1;
+    if(p.y<0||p.y>canvas.height)p.vy*=-1;
+  });
+
+  requestAnimationFrame(draw);
+}
+
+draw();
 </script>
 
 </body>
